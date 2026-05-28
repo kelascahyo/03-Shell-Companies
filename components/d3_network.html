@@ -6,82 +6,32 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0e1117;
-            color: #ffffff;
+            background-color: #0e1117; color: #ffffff;
             overflow: hidden;
         }
-        #graph-container {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-        }
-        .node {
-            stroke: #262730;
-            stroke-width: 2px;
-            cursor: pointer;
-            transition: stroke-width 0.2s ease;
-        }
-        .node:hover {
-            stroke: #ffffff;
-            stroke-width: 3px;
-        }
-        .link {
-            stroke-opacity: 0.6;
-            stroke-linecap: round;
-            cursor: pointer;
-        }
-        .link:hover {
-            stroke-opacity: 1 !important;
-            stroke-width: 4px !important;
-        }
+        #graph-container { width: 100vw; height: 100vh; position: relative; }
+        .node { stroke: #262730; stroke-width: 2px; cursor: pointer; transition: stroke-width 0.2s ease; }
+        .node:hover { stroke: #ffffff; stroke-width: 3px; }
+        .link { stroke-opacity: 0.6; stroke-linecap: round; cursor: pointer; }
+        .link:hover { stroke-opacity: 1 !important; stroke-width: 4px !important; }
         .tooltip {
-            position: absolute;
-            background: rgba(38, 39, 48, 0.95);
-            border: 1px solid #464855;
-            border-radius: 6px;
-            padding: 12px;
-            font-size: 13px;
-            pointer-events: none;
-            opacity: 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            max-width: 300px;
-            z-index: 1000;
-            color: #f0f2f6;
+            position: absolute; background: rgba(38, 39, 48, 0.95);
+            border: 1px solid #464855; border-radius: 6px; padding: 12px;
+            font-size: 13px; pointer-events: none; opacity: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); max-width: 300px;
+            z-index: 1000; color: #f0f2f6;
         }
-        .tooltip-title {
-            font-weight: bold;
-            border-bottom: 1px solid #464855;
-            padding-bottom: 4px;
-            margin-bottom: 6px;
-            color: #ff4b4b;
-        }
+        .tooltip-title { font-weight: bold; border-bottom: 1px solid #464855; padding-bottom: 4px; margin-bottom: 6px; color: #ff4b4b; }
         .legend {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(26, 28, 36, 0.9);
-            border: 1px solid #464855;
-            border-radius: 6px;
-            padding: 12px;
-            font-size: 12px;
-            pointer-events: auto;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            position: absolute; bottom: 20px; left: 20px;
+            background: rgba(26, 28, 36, 0.9); border: 1px solid #464855;
+            border-radius: 6px; padding: 12px; font-size: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4); z-index: 999;
         }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-        .legend-color {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            margin-right: 8px;
-            border: 1px solid #262730;
-        }
+        .legend-item { display: flex; align-items: center; margin-bottom: 6px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 50%; margin-right: 8px; border: 1px solid #262730; }
     </style>
 </head>
 <body>
@@ -98,6 +48,7 @@
     </div>
 
     <script>
+        // Menerima kiriman objek data dari Streamlit Iframe Layer
         window.addEventListener("message", function(event) {
             if (event.data.type === "streamlit:render") {
                 const graphData = event.data.args.graph_data;
@@ -131,14 +82,7 @@
                 }));
 
             const g = svg.append("g");
-
-            const colorMap = {
-                "Badan": "#1f77b4",
-                "OP": "#2ca02c",
-                "LN": "#ff7f0e",
-                "Non NPWP": "#d62728"
-            };
-
+            const colorMap = { "Badan": "#1f77b4", "OP": "#2ca02c", "LN": "#ff7f0e", "Non NPWP": "#d62728" };
             const tooltip = d3.select("#tooltip");
 
             const simulation = d3.forceSimulation(data.nodes)
@@ -147,6 +91,7 @@
                 .force("center", d3.forceCenter(width / 2, height / 2))
                 .force("collision", d3.forceCollide().radius(28));
 
+            // Membuat vektor sisi hubungan relasi investasi saham & dividen
             const link = g.append("g")
                 .selectAll("line")
                 .data(data.links)
@@ -170,14 +115,14 @@
                     .style("top", (event.clientY - 15) + "px");
                 })
                 .on("mousemove", function(event) {
-                    tooltip.style("left", (event.clientX + 15) + "px")
-                        .style("top", (event.clientY - 15) + "px");
+                    tooltip.style("left", (event.clientX + 15) + "px").style("top", (event.clientY - 15) + "px");
                 })
                 .on("mouseout", function(event, d) {
                     d3.select(this).attr("stroke", d.high_risk_connection ? "#ff4b4b" : "#464855");
                     tooltip.transition().duration(100).style("opacity", 0);
                 });
 
+            // Bulatan titik Wajib Pajak
             const node = g.append("g")
                 .selectAll("circle")
                 .data(data.nodes)
@@ -190,14 +135,13 @@
                     .on("drag", dragged)
                     .on("end", dragended));
 
+            // Teks identitas label nama perusahaan / OP
             const label = g.append("g")
                 .selectAll("text")
                 .data(data.nodes)
                 .enter().append("text")
-                .attr("dx", 15)
-                .attr("dy", ".35em")
-                .style("font-size", "11px")
-                .style("fill", "#e0e0e0")
+                .attr("dx", 15).attr("dy", ".35em")
+                .style("font-size", "11px").style("fill", "#e0e0e0")
                 .style("pointer-events", "none")
                 .text(d => d.nama);
 
@@ -211,52 +155,29 @@
                     <hr style="border:0; border-top:1px solid #464855; margin:6px 0;"/>
                     <b>Total Outbound Dividends Flow:</b> ${formatIDR(d.total_dividen_outbound || 0)}
                 `)
-                .style("left", (event.clientX + 15) + "px")
-                .style("top", (event.clientY - 15) + "px");
+                .style("left", (event.clientX + 15) + "px").style("top", (event.clientY - 15) + "px");
             })
             .on("mousemove", function(event) {
-                tooltip.style("left", (event.clientX + 15) + "px")
-                    .style("top", (event.clientY - 15) + "px");
+                tooltip.style("left", (event.clientX + 15) + "px").style("top", (event.clientY - 15) + "px");
             })
-            .on("mouseout", function() {
-                tooltip.transition().duration(100).style("opacity", 0);
-            });
+            .on("mouseout", function() { tooltip.transition().duration(100).style("opacity", 0); });
 
             simulation.on("tick", () => {
-                link
-                    .attr("x1", d => d.source.x)
-                    .attr("y1", d => d.source.y)
-                    .attr("x2", d => d.target.x)
-                    .attr("y2", d => d.target.y);
-
-                node
-                    .attr("cx", d => d.x)
-                    .attr("cy", d => d.y);
-
-                label
-                    .attr("x", d => d.x)
-                    .attr("y", d => d.y);
+                link.attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+                node.attr("cx", d => d.x).attr("cy", d => d.y);
+                label.attr("x", d => d.x).attr("y", d => d.y);
             });
 
             function dragstarted(event, d) {
                 if (!event.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x;
-                d.fy = d.y;
+                d.fx = d.x; d.fy = d.y;
             }
-
-            function dragged(event, d) {
-                d.fx = event.x;
-                d.fy = event.y;
-            }
-
+            function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
             function dragended(event, d) {
                 if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                d.fy = null;
+                d.fx = null; d.fy = null;
             }
         }
-
-        // Run immediately if embedded directly with data injected into window payload
         setTimeout(initGraphFromWindowData, 200);
     </script>
 </body>
