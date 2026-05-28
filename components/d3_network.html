@@ -98,7 +98,6 @@
     </div>
 
     <script>
-        // Membaca data kiriman payload JSON dari pembungkus iframe Streamlit
         window.addEventListener("message", function(event) {
             if (event.data.type === "streamlit:render") {
                 const graphData = event.data.args.graph_data;
@@ -106,7 +105,6 @@
             }
         });
 
-        // Mekanisme fallback jika data diinjeksikan langsung ke scope window
         function initGraphFromWindowData() {
             if (window.graphDataPayload) {
                 renderGraph(window.graphDataPayload);
@@ -143,14 +141,12 @@
 
             const tooltip = d3.select("#tooltip");
 
-            // Konfigurasi Gaya Fisika Simulasi Jaringan
             const simulation = d3.forceSimulation(data.nodes)
                 .force("link", d3.forceLink(data.links).id(d => d.id).distance(110))
                 .force("charge", d3.forceManyBody().strength(-200))
                 .force("center", d3.forceCenter(width / 2, height / 2))
                 .force("collision", d3.forceCollide().radius(28));
 
-            // Render Sisi Hubungan / Edges
             const link = g.append("g")
                 .selectAll("line")
                 .data(data.links)
@@ -182,7 +178,6 @@
                     tooltip.transition().duration(100).style("opacity", 0);
                 });
 
-            // Render Bulatan Titik / Nodes
             const node = g.append("g")
                 .selectAll("circle")
                 .data(data.nodes)
@@ -195,7 +190,6 @@
                     .on("drag", dragged)
                     .on("end", dragended));
 
-            // Teks Label Nama Wajib Pajak
             const label = g.append("g")
                 .selectAll("text")
                 .data(data.nodes)
@@ -207,7 +201,6 @@
                 .style("pointer-events", "none")
                 .text(d => d.nama);
 
-            // Tooltip Interaktif untuk Node Wajib Pajak
             node.on("mouseover", function(event, d) {
                 tooltip.transition().duration(100).style("opacity", 1);
                 tooltip.html(`
@@ -263,6 +256,7 @@
             }
         }
 
+        // Run immediately if embedded directly with data injected into window payload
         setTimeout(initGraphFromWindowData, 200);
     </script>
 </body>
