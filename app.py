@@ -4,32 +4,17 @@ import networkx as nx
 import json
 import os
 
-# Mengeset layout halaman menjadi layar penuh (Wide)
+# Konfigurasi halaman utama Streamlit (Wide Layout)
 st.set_page_config(
     page_title="Corporate Shell & Tax Leakage Network Intelligence",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Kustomisasi UI agar bertema gelap modern khas aplikasi investigasi data
-st.markdown("""
-<style>
-    .reportview-container { background: #0e1117; }
-    .main .block-container { padding-top: 2rem; }
-    h1, h2, h3 { color: #ffffff; font-family: 'Segoe UI', sans-serif; }
-    .metric-card {
-        background-color: #1a1c24;
-        border: 1px solid #464855;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 10px;
-    }
-    .metric-title { font-size: 13px; color: #a3a8b4; text-transform: uppercase; letter-spacing: 0.5px; }
-    .metric-value { font-size: 24px; font-weight: bold; color: #ff4b4b; margin-top: 5px; }
-</style>
-""", unsafe_allowed_html=True)
+# Perbaikan Error: Kustomisasi CSS dibersihkan dari indentasi tab agar tidak merusak parser Markdown Streamlit
+st.markdown("<style>.reportview-container { background: #0e1117; } .main .block-container { padding-top: 2rem; } h1, h2, h3 { color: #ffffff; font-family: 'Segoe UI', sans-serif; } .metric-card { background-color: #1a1c24; border: 1px solid #464855; border-radius: 8px; padding: 15px; margin-bottom: 10px; } .metric-title { font-size: 13px; color: #a3a8b4; text-transform: uppercase; letter-spacing: 0.5px; } .metric-value { font-size: 24px; font-weight: bold; color: #ff4b4b; margin-top: 5px; }</style>", unsafe_allowed_html=True)
 
-# Narasi analisis ber-bahasa Inggris (Sesuai instruksi)
+# Narasi analisis dalam Bahasa Inggris
 st.title("🛡️ Anti-Tax Avoidance & Shell Company Network Analyzer")
 st.markdown("""
 ### Executive Brief & System Overview
@@ -38,7 +23,7 @@ This analytics workspace is purpose-built to map corporate structures, identify 
 **Analytic Focus:** Detecting Indonesian domestic corporate entities (`Badan`) that redirect substantial dividend streams or transfer heavy equity percentages into high-risk foreign jurisdictions or unregistered structures.
 """)
 
-# Fungsi untuk membaca data ter-cache
+# Fungsi memuat data dengan cache otomatis
 @st.cache_data
 def load_network_data():
     if os.path.exists("nodes_masked.csv") and os.path.exists("edges_masked_part1_a.csv"):
@@ -88,23 +73,20 @@ if not nodes_df.empty and not edges_df.empty:
         0.0, 100.0, 0.0
     )
 
-    # Proses Filtering Data menggunakan Pandas & NetworkX Logic
+    # Proses Filtering Data menggunakan Pandas
     filtered_edges = edges_df.copy()
     
     if analysis_mode == "High-Risk Cross-Border Network Only":
-        # Menyaring data agar hanya menyisakan node yang berinteraksi langsung dengan LN / Non NPWP
         filtered_edges = filtered_edges[
             filtered_edges['sumber'].isin(high_risk_nodes) | 
             filtered_edges['target'].isin(high_risk_nodes)
         ]
         
-    # Terapkan filter numerik parameter nilai ambang batas
     filtered_edges = filtered_edges[
         (filtered_edges['dividen'] >= min_dividend) & 
         (filtered_edges['persentase'] >= min_percentage)
     ]
     
-    # Ambil daftar unik node yang lolos penyaringan relasi aktif
     active_node_ids = set(filtered_edges['sumber'].unique()).union(set(filtered_edges['target'].unique()))
     filtered_nodes = nodes_df[nodes_df['id'].isin(active_node_ids)]
 
@@ -114,20 +96,11 @@ if not nodes_df.empty and not edges_df.empty:
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f"""<div class="metric-card">
-            <div class="metric-title">🚨 Total Flagged Outbound Dividends</div>
-            <div class="metric-value">Rp {total_leakage:,.2f}</div>
-        </div>""", unsafe_allowed_html=True)
+        st.markdown(f'<div class="metric-card"><div class="metric-title">🚨 Total Flagged Outbound Dividends</div><div class="metric-value">Rp {total_leakage:,.2f}</div></div>', unsafe_allowed_html=True)
     with col2:
-        st.markdown(f"""<div class="metric-card">
-            <div class="metric-title">🏢 High-Risk Shell Nodes (LN & Non-NPWP)</div>
-            <div class="metric-value">{high_risk_count} Entities</div>
-        </div>""", unsafe_allowed_html=True)
+        st.markdown(f'<div class="metric-card"><div class="metric-title">🏢 High-Risk Shell Nodes (LN & Non-NPWP)</div><div class="metric-value">{high_risk_count} Entities</div></div>', unsafe_allowed_html=True)
     with col3:
-        st.markdown(f"""<div class="metric-card">
-            <div class="metric-title">🔗 Total Active Network Ties</div>
-            <div class="metric-value">{len(filtered_edges)} Links</div>
-        </div>""", unsafe_allowed_html=True)
+        st.markdown(f'<div class="metric-card"><div class="metric-title">🔗 Total Active Network Ties</div><div class="metric-value">{len(filtered_edges)} Links</div></div>', unsafe_allowed_html=True)
 
     # Transformasikan objek data ke dalam representasi standar format JSON Node-Link untuk D3.js
     d3_nodes = []
